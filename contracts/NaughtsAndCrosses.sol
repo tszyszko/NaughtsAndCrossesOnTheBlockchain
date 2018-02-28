@@ -106,6 +106,10 @@ contract NaughtsAndCrosses {
     function changeState(State _state) private {
         state = _state;
     }
+
+    function getState() public returns (State){
+        return state;
+    }
     
     
     

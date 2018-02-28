@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Naughts And Crosses</title>
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+  <script src="./app.js"></script>
+</head>
+<body>
+  <h1>Naughts and Crosses</h1>
+  <h2>Dapp</h2>
+
+  <br>
+  <br><br>
+  <div id="gameAddress">
+  </div>
+
+  <div id="startButtons">
+    <button id="player1" onclick="App.startGame()">Start New Game</button><button id="joinGame" onclick="App.joinGame()">Join Game</button>
+  </div>
+
+  <div class="enterBet" id="enterBetDiv">
+    <h3>Enter Bet Amount</h3>
+    <input type="text" id="enterBet" placeholder="e.g., 10 wei"></input>
+    <button id="betSubmit" onclick="App.betSubmit()">Submit bid</button>
+  </div>
+
+  <div class="enterAddress" id="enterAddressDiv">
+    <h3>Enter Game Address</h3>
+    <input type="text" id="enterAddress" placeholder="e.g. 0x123456..."></input>
+    <button id="addressSubmit" onclick="App.addressSubmit()">Join Game</button>
+  </div>
+
+
+
+  <br>
+  <span class="hint"><strong>Hint:</strong> open the browser developer console to view any errors and warnings.</span>
+  <button id="getState" onclick="App.getState()">Get State</button>
+</body>
+</html>
