@@ -32,8 +32,33 @@
 
 
 
+  <h1>Gameboard</h1>
+  <br>
+  <div class="divTable gameBoard" id="gameBoardDiv">
+    <div class="divTableBody">
+      <div class="divTableRow">
+        <div class="divTableCell" id="cell0">&nbsp;</div>
+        <div class="divTableCell" id="cell1">&nbsp;</div>
+        <div class="divTableCell" id="cell2">&nbsp;</div>
+      </div>
+      <div class="divTableRow">
+        <div class="divTableCell" id="cell3">&nbsp;</div>
+        <div class="divTableCell" id="cell4">&nbsp;</div>
+        <div class="divTableCell" id="cell5">&nbsp;</div>
+      </div>
+      <div class="divTableRow">
+        <div class="divTableCell" id="cell6">&nbsp;</div>
+        <div class="divTableCell" id="cell7">&nbsp;</div>
+        <div class="divTableCell "id="cell8">&nbsp;</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="result" id="resultDiv"></div>
+  <div id="displayState"></div>
+
   <br>
   <span class="hint"><strong>Hint:</strong> open the browser developer console to view any errors and warnings.</span>
-  <button id="getState" onclick="App.getState()">Get State</button>
+  <button id="updateBoard" onclick="App.refresh()">Refresh</button>
 </body>
 </html>

@@ -9,11 +9,23 @@ import { default as contract } from 'truffle-contract'
 import naughtsandcrosses_artifacts from '../../build/contracts/NaughtsAndCrosses.json'
 
 
-var NaughtsAndCrosses = contract(naughtsandcrosses_artifacts);
+
+let NaughtsAndCrosses = contract(naughtsandcrosses_artifacts);
 NaughtsAndCrosses.setProvider(window.web3.currentProvider);
+
 
 let playerID = null;
 let gameAddress = null;
+let instance = null;
+
+// Hardcoded for now
+NaughtsAndCrosses.deployed().then(_instance => {
+  instance = _instance;
+  gameAddress = instance.address;
+  App.refresh();
+
+});
+
 
 const contractStates = {
   0: "PLAYER_1_PAY",
@@ -36,7 +48,7 @@ window.App = {
   joinGame: () => {
     toggleElement("startButtons", false);
     toggleElement("enterAddressDiv", true);
-    playerID = 2;
+    playerID = 2;if (player === 1) makeMovePlayer1(position);
   },
 
   betSubmit: () => {
@@ -45,37 +57,167 @@ window.App = {
   },
 
   addressSubmit: () => {
-    gameAddress = document.getElementById("enterAddress").value;
+    // Hardcoded value for now
+    // gameAddress = document.getElementById("enterAddress").value;
     toggleElement("enterAddressDiv", false);
     addressBanner(gameAddress);
+    payPlayer2();
   },
 
-  getState: () => getState(),
+
+  refresh: () => {
+    getState().then(state =>handleGameState(state));
+  },
+
+  cellClick: (pos) => {
+    // dependant on player
+    console.log(`clicked ${pos}`);
+    makeMove(pos).then(window.App.refresh());
+
+  }
 
 
 
 
 };
 
+const handleGameState = (state) => {
+    switch (state) {
+      case "PLAYER_1_PAY":
+      case "PLAYER_2_PAY":
+      case "PLAYER_1_TURN":
+        getBoard().then((board) => updateBoard(board));
+        break;
+      case "PLAYER_2_TURN":
+        getBoard().then((board) => updateBoard(board));
+        break;
+      case "PLAYER_1_WIN":
+        toggleElement("gameBoardDiv", false);
+        toggleElement("resultDiv", true);
+        document.getElementById("resultDiv").innerHTML = "<h2> Player 1 Win</h2>" +
+          "<button id=\\\"withdraw\\\" onclick=\"App.withdraw()\">Withdraw funds</button>";
+        break;
+      case "PLAYER_2_WIN":
+        toggleElement("gameBoardDiv", false);
+        toggleElement("resultDiv", true);
+        document.getElementById("resultDiv").innerHTML = "<h2> Player 2 Win</h2>" +
+          "<button id=\"withdraw\" onclick=\"App.withdraw()\">Withdraw funds</button>";
+        break;
+      case "GAME_DRAW":
+        toggleElement("gameBoardDiv", false);
+        toggleElement("resultDiv", true);
+        document.getElementById("resultDiv").innerHTML = "<h2> Draw </h2>" +
+          "<button id=\"withdraw\" onclick=\"App.withdraw()\">Withdraw funds</button>";
+        break;
+      default:
+        console.log("state fail");
+    }
+    displayState(state);
+};
+
 const getState = () => {
-  NaughtsAndCrosses.setProvider(window.web3.currentProvider);
-  NaughtsAndCrosses.deployed().then((instance) => {
-    // console.log(instance);
-    return instance.getState.call({from: window.web3.eth.accounts[0]});
-  }).then(result => {
-    alert(contractStates[result]);
+  return instance.getState.call({from: window.web3.eth.accounts[0]}).then(result => {
+    return (contractStates[result]);
   }).catch(err => alert(err));
+};
+
+const getBet = () => {
+  return instance.bet.call({from: window.web3.eth.accounts[0]}).then(result => {
+    return result;
+  }).catch(err => alert(err));
+};
+
+const displayState = (state) => {
+  document.getElementById("displayState").innerHTML = `<h2>Current contract state is ${state}</h2>`
+};
+
+const getBoard = () => {
+  let promises = [];
+  // return instance.getBoardValue.call(8, {from: window.web3.eth.accounts[0]}).then(result => {
+  //   console.log(result.toNumber());
+  //   return result;
+  // }).catch(err => {return err});
+  for (let i = 0 ; i < 9; i++) {
+    promises.push(instance.getBoardValue.call(i, {from: window.web3.eth.accounts[0]}).then(result => {
+      return result;
+    }).catch(err => {return err}));
+  }
+  return Promise.all(promises);
+
+};
+
+const makeMove = (position) => {
+  return getPlayer().then(player => {
+    if (!player || player < 1 || player > 2) return false;
+    if (player === 1) return makeMovePlayer1(position);
+    if (player === 2) return makeMovePlayer2(position);
+  })
+};
+
+const makeMovePlayer1 = (position) => {
+  return instance.submitMovePlayer1(position, {from: window.web3.eth.accounts[0]}).then(result => {
+    return result;
+  }).catch(err => alert(err));
+};
+
+const makeMovePlayer2 = (position) => {
+  return instance.submitMovePlayer2(position, {from: window.web3.eth.accounts[0]}).then(result => {
+    return result;
+  }).catch(err => alert(err));
+};
+
+const getPlayer = () => {
+  return getState().then(state => {
+    switch (state) {
+      case "PLAYER_1_TURN":
+        return 1;
+      case "PLAYER_2_TURN":
+        return 2;
+      default:
+        return null;
+    }
+  })
+};
+
+
+const updateBoard = (positions) => {
+  for (let i = 0 ; i < 9; i++) {
+    // Get correct game board div
+    const grid = document.getElementById(`cell${i}`);
+    switch (positions[i].toNumber()) {
+      case 0:
+        // Empty cell, place button
+        grid.innerHTML = `<button id=\"makeMove\" onclick=\"App.cellClick(${i})\">Place Here</button>`;
+        break;
+      case 1:
+        // X
+        grid.innerHTML = "<h1>X</h1>";
+        break;
+      case 20:
+        grid.innerHTML = "<h1>O</h1>";
+        break;
+      default:
+        console.log("somethings wrong");
+        console.log(positions[i].toNumber());
+
+    }
+
+
+
+    //
+
+  }
 };
 
 const displayContractAddress = () => {
   newContract().then(address => {
-    gameAddress = address;
+    gameAddress = address;1322222
     addressBanner(address);
   })
 };
 
-const addressBanner = (address) => {
-  document.getElementById("gameAddress").innerHTML = `<h2> This games address is ${address}</h2>`;
+const addressBanner = () => {
+  document.getElementById("gameAddress").innerHTML = `<h2> This games address is ${gameAddress}</h2>`;
 };
 
 
@@ -87,11 +229,22 @@ const toggleElement = (id, bool) => {
 };
 
 const payInitial = (amount) => {
-  NaughtsAndCrosses.at(gameAddress).then((instance) => {
-    return instance.player1StartGame({from: window.web3.eth.accounts[0], value: amount});
-  }).then((result) => {
+  instance.player1StartGame({from: window.web3.eth.accounts[0], value: amount}).then((result) => {
+    // If this callback is called, the transaction was successfully processed.
+    console.log(result);
+    return true;
+  }).catch((err) => {
+    // There was an error! Handle it.
+    alert(err);
+  })
+};
 
-  }).catch(err => {
+const payPlayer2 = () => {
+  getBet().then(bet => instance.player2StartGame({from: window.web3.eth.accounts[0], value: bet})).then((result) => {
+    // If this callback is called, the transaction was successfully processed.
+    console.log(result);
+    return true;
+  }).catch((err) => {
     // There was an error! Handle it.
     alert(err);
   });
@@ -100,9 +253,7 @@ const payInitial = (amount) => {
 // New Contract Code broken - use existing deployed for now
 
 const newContract = () => {
-  return NaughtsAndCrosses.deployed().then((instance) => {
-    return instance.address;
-  });
+  return Promise.resolve(instance.address);
 };
 
 // const newContract = () => {

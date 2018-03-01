@@ -179,6 +179,12 @@ contract NaughtsAndCrosses {
         player2Join(player2, msg.value);
     }
 
+    // Get board positions
+
+    function getBoardValue(uint8 boardLocation) public returns (uint8) {
+        return gameBoard[boardLocation];
+    }
+
     
     
     // Handle player moves
