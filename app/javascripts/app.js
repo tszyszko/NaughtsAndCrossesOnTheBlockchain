@@ -2,12 +2,11 @@
 import "../stylesheets/app.css";
 
 // Import libraries we need.
-import { default as Web3} from 'web3';
-import { default as contract } from 'truffle-contract'
+import {default as Web3} from 'web3';
+import {default as contract} from 'truffle-contract'
 
 // Import our contract artifacts and turn them into usable abstractions.
 import naughtsandcrosses_artifacts from '../../build/contracts/NaughtsAndCrosses.json'
-
 
 
 let NaughtsAndCrosses = contract(naughtsandcrosses_artifacts);
@@ -48,7 +47,8 @@ window.App = {
   joinGame: () => {
     toggleElement("startButtons", false);
     toggleElement("enterAddressDiv", true);
-    playerID = 2;if (player === 1) makeMovePlayer1(position);
+    playerID = 2;
+    if (player === 1) makeMovePlayer1(position);
   },
 
   betSubmit: () => {
@@ -66,53 +66,62 @@ window.App = {
 
 
   refresh: () => {
-    getState().then(state =>handleGameState(state));
+    getState().then(state => handleGameState(state));
   },
 
   cellClick: (pos) => {
     // dependant on player
     console.log(`clicked ${pos}`);
-    makeMove(pos).then(window.App.refresh());
+    makeMove(pos).then(() => promiseSleep(10000)).then(() => console.log("called refresh")).then(() => window.App.refresh());
 
+  },
+
+  withdraw: () => {
+    makeWithdrawal().then(promiseSleep(10000)).then(() => console.log("called refresh")).then(() => App.refresh());
   }
-
-
-
 
 };
 
+const promiseSleep = (time) => {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      resolve();
+    }, time)
+  });
+};
+
 const handleGameState = (state) => {
-    switch (state) {
-      case "PLAYER_1_PAY":
-      case "PLAYER_2_PAY":
-      case "PLAYER_1_TURN":
-        getBoard().then((board) => updateBoard(board));
-        break;
-      case "PLAYER_2_TURN":
-        getBoard().then((board) => updateBoard(board));
-        break;
-      case "PLAYER_1_WIN":
-        toggleElement("gameBoardDiv", false);
-        toggleElement("resultDiv", true);
-        document.getElementById("resultDiv").innerHTML = "<h2> Player 1 Win</h2>" +
-          "<button id=\\\"withdraw\\\" onclick=\"App.withdraw()\">Withdraw funds</button>";
-        break;
-      case "PLAYER_2_WIN":
-        toggleElement("gameBoardDiv", false);
-        toggleElement("resultDiv", true);
-        document.getElementById("resultDiv").innerHTML = "<h2> Player 2 Win</h2>" +
-          "<button id=\"withdraw\" onclick=\"App.withdraw()\">Withdraw funds</button>";
-        break;
-      case "GAME_DRAW":
-        toggleElement("gameBoardDiv", false);
-        toggleElement("resultDiv", true);
-        document.getElementById("resultDiv").innerHTML = "<h2> Draw </h2>" +
-          "<button id=\"withdraw\" onclick=\"App.withdraw()\">Withdraw funds</button>";
-        break;
-      default:
-        console.log("state fail");
-    }
-    displayState(state);
+  switch (state) {
+    case "PLAYER_1_PAY":
+    case "PLAYER_2_PAY":
+    case "PLAYER_1_TURN":
+      getBoard().then((board) => updateBoard(board));
+      break;
+    case "PLAYER_2_TURN":
+      getBoard().then((board) => updateBoard(board));
+      break;
+    case "PLAYER_1_WIN":
+      toggleElement("gameBoardDiv", false);
+      toggleElement("resultDiv", true);
+      document.getElementById("resultDiv").innerHTML = "<h2> Player 1 Win</h2>" +
+        "<button id=\\\"withdraw\\\" onclick=\"App.withdraw()\">Withdraw funds</button>";
+      break;
+    case "PLAYER_2_WIN":
+      toggleElement("gameBoardDiv", false);
+      toggleElement("resultDiv", true);
+      document.getElementById("resultDiv").innerHTML = "<h2> Player 2 Win</h2>" +
+        "<button id=\"withdraw\" onclick=\"App.withdraw()\">Withdraw funds</button>";
+      break;
+    case "GAME_DRAW":
+      toggleElement("gameBoardDiv", false);
+      toggleElement("resultDiv", true);
+      document.getElementById("resultDiv").innerHTML = "<h2> Draw </h2>" +
+        "<button id=\"withdraw\" onclick=\"App.withdraw()\">Withdraw funds</button>";
+      break;
+    default:
+      console.log("state fail");
+  }
+  displayState(state);
 };
 
 const getState = () => {
@@ -133,17 +142,21 @@ const displayState = (state) => {
 
 const getBoard = () => {
   let promises = [];
-  // return instance.getBoardValue.call(8, {from: window.web3.eth.accounts[0]}).then(result => {
-  //   console.log(result.toNumber());
-  //   return result;
-  // }).catch(err => {return err});
-  for (let i = 0 ; i < 9; i++) {
+  for (let i = 0; i < 9; i++) {
     promises.push(instance.getBoardValue.call(i, {from: window.web3.eth.accounts[0]}).then(result => {
       return result;
-    }).catch(err => {return err}));
+    }).catch(err => {
+      return err
+    }));
   }
   return Promise.all(promises);
 
+};
+
+const makeWithdrawal = () => {
+  return instance.withdraw({from: window.web3.eth.accounts[0]}).then(result => {
+    return result;
+  }).catch(err => alert(err));
 };
 
 const makeMove = (position) => {
@@ -181,7 +194,7 @@ const getPlayer = () => {
 
 
 const updateBoard = (positions) => {
-  for (let i = 0 ; i < 9; i++) {
+  for (let i = 0; i < 9; i++) {
     // Get correct game board div
     const grid = document.getElementById(`cell${i}`);
     switch (positions[i].toNumber()) {
@@ -201,17 +214,12 @@ const updateBoard = (positions) => {
         console.log(positions[i].toNumber());
 
     }
-
-
-
-    //
-
   }
 };
 
 const displayContractAddress = () => {
   newContract().then(address => {
-    gameAddress = address;1322222
+    gameAddress = address;
     addressBanner(address);
   })
 };
@@ -219,7 +227,6 @@ const displayContractAddress = () => {
 const addressBanner = () => {
   document.getElementById("gameAddress").innerHTML = `<h2> This games address is ${gameAddress}</h2>`;
 };
-
 
 
 const toggleElement = (id, bool) => {
@@ -273,8 +280,7 @@ const newContract = () => {
 // };
 
 
-
-window.addEventListener('load', function() {
+window.addEventListener('load', function () {
   // Checking if Web3 has been injected by the browser (Mist/MetaMask)
   if (typeof web3 !== 'undefined') {
     console.warn("Using web3 detected from external source. If you find that your accounts don't appear or you have 0 MetaCoin, ensure you've configured that source properly. If using MetaMask, see the following link. Feel free to delete this warning. :) http://truffleframework.com/tutorials/truffle-and-metamask")

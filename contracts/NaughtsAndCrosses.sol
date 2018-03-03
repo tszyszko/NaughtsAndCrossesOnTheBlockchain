@@ -22,6 +22,7 @@ contract NaughtsAndCrosses {
     event player2Join(address player, uint256 bet);
     event playerMove(uint8 player, uint pos, uint8[] board);
     event playerWin(uint8 player, uint8[] board, uint8 reason);
+    event withdrawn(address player, uint amount);
     event draw(uint8[] board);
     
     
@@ -225,7 +226,7 @@ contract NaughtsAndCrosses {
         uint amount = pendingWithdrawal[msg.sender];
         pendingWithdrawal[msg.sender] = 0;
         msg.sender.transfer(amount);
-
+        withdrawn(msg.sender, amount);
         
     }
     
